@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TK 蘋果商品到貨週期表</title>
+<style>
+  :root {
+    --bg: #f5f5f7;
+    --card: #ffffff;
+    --surface2: #fafafc;
+    --text: #1d1d1f;
+    --subtext: #6e6e73;
+    --border: #d2d2d7;
+    --accent: #0071e3;
+    --accent-hover: #0077ed;
+    --pill-bg: #e8e8ed;
+    --in: #34c759; --in-bg: #edfaf1; --in-text: #1a7f37;
+    --none: #ff3b30; --none-bg: #fff0ee; --none-text: #c0392b;
+    --mid: #ff9500; --mid-bg: #fff8ec; --mid-text: #9a5c00;
+    --green: #1a9e3f;
+    --sh: 0 2px 16px rgba(0,0,0,.08);
+    --sh-h: 0 8px 32px rgba(0,0,0,.14);
+    --r: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #000000; --card: #1c1c1e; --surface2: #2c2c2e;
+      --text: #f5f5f7; --subtext: #98989d; --border: #3a3a3c;
+      --accent: #2997ff;
+      --pill-bg: #2c2c2e;
+      --in: #30d158; --in-bg: #0d2b14; --in-text: #30d158;
+      --none: #ff453a; --none-bg: #2d0f0d; --none-text: #ff453a;
+      --mid: #ff9f0a; --mid-bg: #2d1e00; --mid-text: #ff9f0a;
+      --green: #30d158;
+      --sh: 0 2px 16px rgba(0,0,0,.4); --sh-h: 0 8px 32px rgba(0,0,0,.6);
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── Sticky Header ── */
+  header {
+    background: rgba(245,245,247,0.88);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 200;
+    padding: 0 24px;
+  }
+  @media (prefers-color-scheme: dark) { header { background: rgba(0,0,0,0.88); } }
+  .header-inner {
+    max-width: 1080px; margin: 0 auto;
+    display: flex; align-items: center; gap: 14px; height: 52px;
+  }
+  .header-logo { font-size: 22px; line-height: 1; }
+  .header-title { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+  .header-date { margin-left: auto; font-size: 13px; color: var(--subtext); white-space: nowrap; }
+
+  /* ── Page Tabs (top-level) ── */
+  .page-tab-bar {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+  }
+  .page-tab {
+    padding: 10px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--subtext);
+    cursor: pointer;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    transition: all .2s;
+    display: flex; align-items: center; gap: 7px;
+    white-space: nowrap;
+    box-shadow: var(--sh);
+  }
+  .page-tab:hover { border-color: var(--accent); color: var(--accent); }
+  .page-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(0,113,227,.35);
+  }
+
+  /* ── Pages ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ════════════════════════════════
+     PAGE A — 到貨週期表
+  ════════════════════════════════ */
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 52px 24px 36px;
+  }
+  .hero h1 {
+    font-size: clamp(26px, 5vw, 44px);
+    font-weight: 700;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    background: linear-gradient(135deg, var(--text) 40%, var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+  .hero p { font-size: 16px; color: var(--subtext); max-width: 440px; margin: 0 auto; line-height: 1.5; }
+
+  /* Legend */
+  .legend {
+    display: flex; align-items: center; justify-content: center;
+    gap: 20px; margin-bottom: 28px; flex-wrap: wrap;
+    padding: 0 24px; font-size: 13px; color: var(--subtext);
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .legend-dot.in  { background: var(--in); }
+  .legend-dot.mid { background: var(--mid); }
+  .legend-dot.none { background: var(--none); }
+
+  /* Category Pills */
+  .cat-bar { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; padding: 0 24px 32px; }
+  .cat-pill {
+    padding: 7px 18px; border-radius: 980px; background: var(--pill-bg);
+    color: var(--text); font-size: 14px; font-weight: 500; cursor: pointer;
+    border: none; transition: all .2s; white-space: nowrap;
+  }
+  .cat-pill:hover { opacity: .75; }
+  .cat-pill.active { background: var(--accent); color: #fff; }
+
+  /* Arrival Main */
+  .arrival-main { max-width: 1080px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* Section */
+  .section { margin-bottom: 48px; }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .section-icon { font-size: 24px; }
+  .section-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .section-count {
+    margin-left: auto; font-size: 13px; color: var(--subtext);
+    background: var(--pill-bg); padding: 3px 10px; border-radius: 980px;
+  }
+
+  /* Week col headers */
+  .week-cols {
+    display: grid;
+    grid-template-columns: 1fr repeat(3, 90px);
+    padding: 0 16px; margin-bottom: 6px;
+  }
+  .week-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--subtext); text-align: center;
+  }
+  .week-label:first-child { text-align: left; }
+
+  /* Product rows */
+  .products { display: flex; flex-direction: column; gap: 1px; }
+  .product-card {
+    background: var(--card); padding: 13px 16px;
+    display: grid; grid-template-columns: 1fr repeat(3, 90px);
+    align-items: center; transition: background .15s;
+  }
+  .product-card:first-child { border-radius: 16px 16px 0 0; }
+  .product-card:last-child  { border-radius: 0 0 16px 16px; }
+  .product-card:only-child  { border-radius: 16px; }
+  .product-card:hover { background: color-mix(in srgb, var(--card) 85%, var(--accent) 15%); }
+
+  .product-info { min-width: 0; }
+  .product-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.1px; }
+  .product-model { font-size: 11px; color: var(--subtext); margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+  .badge-cell { display: flex; justify-content: center; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 980px;
+    font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .badge.in-stock  { background: var(--in-bg);   color: var(--in-text); }
+  .badge.low-stock { background: var(--mid-bg);  color: var(--mid-text); }
+  .badge.out-stock { background: var(--none-bg); color: var(--none-text); }
+  .badge.estimated { opacity: .75; }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .in-stock  .badge-dot { background: var(--in); }
+  .low-stock .badge-dot { background: var(--mid); }
+  .out-stock .badge-dot { background: var(--none); }
+
+  .group-divider { height: 1px; background: var(--border); opacity: .5; margin: 0 16px; }
+
+  @media (max-width: 540px) {
+    .week-cols,
+    .product-card {
+      grid-template-columns: 1fr repeat(3, 62px);
+    }
+    .week-cols { padding: 0 10px; }
+    .product-card { padding: 11px 10px; }
+    .week-label { font-size: 9.5px; letter-spacing: 0; }
+    .product-name { font-size: 13px; white-space: normal; overflow: visible; text-overflow: unset; }
+    .product-model { font-size: 10px; }
+    .badge { padding: 3px 7px; font-size: 11px; gap: 3px; }
+    .badge-dot { width: 5px; height: 5px; }
+  }
+
+  /* ════════════════════════════════
+     PAGE B — 促銷比較
+  ════════════════════════════════ */
+  .price-main { max-width: 960px; margin: 0 auto; padding: 28px 24px 80px; }
+
+  .price-hero { text-align: center; margin-bottom: 24px; padding-top: 40px; }
+  .price-hero h2 { font-size: 26px; font-weight: 700; letter-spacing: -.5px; margin-bottom: 6px; }
+  .price-hero p  { font-size: 14px; color: var(--subtext); }
+
+  /* Category tabs */
+  .cat-tabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+  .cat-tab {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    padding: 14px 20px; border-radius: var(--r);
+    background: var(--card); border: 2px solid var(--border);
+    cursor: pointer; transition: all .18s; min-width: 80px; box-shadow: var(--sh);
+  }
+  .cat-tab:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--sh-h); }
+  .cat-tab.active {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+    transform: translateY(-2px); box-shadow: var(--sh-h);
+  }
+  .cat-tab .icon { font-size: 26px; line-height: 1; }
+  .cat-tab .lbl  { font-size: 12px; font-weight: 600; }
+
+  /* Selector card */
+  .sel-card {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: var(--r); padding: 20px 22px; margin-bottom: 24px; box-shadow: var(--sh);
+  }
+  .sel-card h3 {
+    font-size: 11px; font-weight: 600; color: var(--subtext);
+    margin-bottom: 14px; text-transform: uppercase; letter-spacing: .5px;
+  }
+  .sel-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .sel-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 160px; }
+  .sel-group label { font-size: 12px; font-weight: 600; color: var(--subtext); }
+  .sel-group select {
+    background: var(--bg); color: var(--text);
+    border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 9px 36px 9px 12px; font-size: 14px; font-weight: 500;
+    cursor: pointer; outline: none; appearance: none; width: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%236e6e73' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+  }
+  .sel-group select:focus { border-color: var(--accent); }
+  .sel-group select:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* Price box */
+  #price-box {
+    display: none;
+    background: linear-gradient(135deg, #1d1d1f 0%, #2d2d2f 100%);
+    border-radius: var(--r); padding: 22px 24px; margin-bottom: 24px;
+    color: #fff; box-shadow: 0 4px 24px rgba(0,0,0,.2);
+  }
+  #price-box.show { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+  .pb-info { flex: 1; min-width: 180px; }
+  .pb-model { font-size: 11px; color: rgba(255,255,255,.6); margin-bottom: 4px; font-weight: 500; }
+  .pb-name  { font-size: 18px; font-weight: 700; margin-bottom: 4px; line-height: 1.3; }
+  .pb-spec  { font-size: 12px; color: rgba(255,255,255,.65); }
+  .pb-prices { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .pb-price { text-align: center; }
+  .pb-price .plbl { font-size: 10px; color: rgba(255,255,255,.55); margin-bottom: 2px; font-weight: 500; }
+  .pb-price .pamt { font-size: 22px; font-weight: 700; }
+  .pb-price .pamt.sale { color: #ff9f0a; }
+  .pb-price .pamt.edu  { color: #5ac8fa; }
+  .pb-bonus {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25);
+    border-radius: 20px; padding: 5px 13px;
+    font-size: 13px; font-weight: 600; color: #ffd60a; white-space: nowrap;
+  }
+  .pb-gift {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(48,209,88,.15); border: 1px solid rgba(48,209,88,.4);
+    border-radius: 20px; padding: 5px 13px;
+    font-size: 13px; font-weight: 600; color: #30d158; white-space: nowrap;
+  }
+  .pb-discount {
+    background: #ff3b30; color: #fff;
+    border-radius: 20px; padding: 5px 12px;
+    font-size: 14px; font-weight: 700; letter-spacing: .3px; white-space: nowrap;
+  }
+  .pb-divider { width: 1px; height: 40px; background: rgba(255,255,255,.15); }
+
+  /* Placeholder */
+  #placeholder { text-align: center; padding: 52px 20px; color: var(--subtext); }
+  #placeholder .big { font-size: 48px; margin-bottom: 14px; }
+  #placeholder h3 { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+
+  /* Disclaimer */
+  .disc {
+    margin-top: 32px; padding: 14px 18px; background: var(--card);
+    border-radius: 12px; border: 1px solid var(--border);
+    font-size: 12px; color: var(--subtext); line-height: 1.6;
+  }
+  .disc strong { color: var(--text); }
+
+  /* Footer */
+  footer {
+    text-align: center; padding: 28px 24px;
+    font-size: 12px; color: var(--subtext); border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Sticky Header ── -->
+<header>
+  <div class="header-inner">
+    <span class="header-logo">🍎</span>
+    <span class="header-title">TK 蘋果商品資訊</span>
+    <span class="header-date">促銷檔期：2025/6/19–7/9</span>
+  </div>
+</header>
+
+<!-- ── Page Tab Bar ── -->
+<div class="page-tab-bar">
+  <button class="page-tab active" onclick="switchPage('price', this)">💰 促銷比較</button>
+  <button class="page-tab" onclick="switchPage('arrival', this)">📦 到貨週期表</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE A — 到貨週期表
+════════════════════════════════════════ -->
+<div id="page-arrival" class="page">
+
+  <div class="hero">
+    <h1>TK 蘋果商品到貨週期表</h1>
+    <p>依週次查看各品項庫存到貨狀況，掌握最佳入手時機。</p>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot in"></div>有到貨（數量多）</div>
+    <div class="legend-item"><div class="legend-dot mid"></div>少量到貨</div>
+    <div class="legend-item"><div class="legend-dot none"></div>未到貨</div>
+  </div>
+
+  <div class="cat-bar">
+    <button class="cat-pill active" onclick="filterCat('all')">全部</button>
+    <button class="cat-pill" onclick="filterCat('mac')">Mac</button>
+    <button class="cat-pill" onclick="filterCat('ipad')">iPad</button>
+    <button class="cat-pill" onclick="filterCat('iphone')">iPhone</button>
+    <button class="cat-pill" onclick="filterCat('watch')">Apple Watch</button>
+    <button class="cat-pill" onclick="filterCat('airpods')">AirPods</button>
+  </div>
+
+  <div class="arrival-main" id="arrival-content"></div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE B — 促銷比較
+════════════════════════════════════════ -->
+<div id="page-price" class="page active">
+  <div class="price-main">
+    <div class="price-hero">
+      <h2>Apple 商品促銷比較</h2>
+      <p>選擇產品與規格，查看促銷價並快速跳轉各授權通路</p>
+    </div>
+
+    <div class="cat-tabs" id="cat-tabs">
+      <div class="cat-tab active" data-cat="mac"><span class="icon">💻</span><span class="lbl">Mac</span></div>
+      <div class="cat-tab" data-cat="ipad"><span class="icon">🟦</span><span class="lbl">iPad</span></div>
+      <div class="cat-tab" data-cat="iphone"><span class="icon">📱</span><span class="lbl">iPhone</span></div>
+      <div class="cat-tab" data-cat="watch"><span class="icon">⌚</span><span class="lbl">Apple Watch</span></div>
+      <div class="cat-tab" data-cat="airpods"><span class="icon">🎧</span><span class="lbl">AirPods</span></div>
+    </div>
+
+    <div class="sel-card">
+      <h3>選擇規格</h3>
+      <div class="sel-row" id="sel-row"></div>
+    </div>
+
+    <div id="price-box">
+      <div class="pb-info">
+        <div class="pb-model" id="pb-model"></div>
+        <div class="pb-name"  id="pb-name"></div>
+        <div class="pb-spec"  id="pb-spec"></div>
+      </div>
+      <div class="pb-prices">
+        <div class="pb-price">
+          <div class="plbl">標準售價</div>
+          <div class="pamt" id="pb-member"></div>
+        </div>
+        <div class="pb-divider" id="pb-divider" style="display:none"></div>
+        <div class="pb-price" id="pb-sale-wrap" style="display:none">
+          <div class="plbl">促銷價</div>
+          <div class="pamt sale" id="pb-sale"></div>
+        </div>
+        <div id="pb-badge-wrap" style="display:none">
+          <div class="pb-discount" id="pb-discount"></div>
+        </div>
+        <div class="pb-divider" id="pb-edu-divider" style="display:none"></div>
+        <div class="pb-price" id="pb-edu-wrap" style="display:none">
+          <div class="plbl">🎓 教育價</div>
+          <div class="pamt edu" id="pb-edu"></div>
+        </div>
+        <div id="pb-bonus-wrap" style="display:none">
+          <div class="pb-bonus" id="pb-bonus"></div>
+        </div>
+        <div id="pb-gift-wrap" style="display:none">
+          <div class="pb-gift" id="pb-gift"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="placeholder">
+      <div class="big">👆</div>
+      <h3>請選擇產品與規格</h3>
+      <p>選好規格後，會顯示價格資訊</p>
+    </div>
+
+    <div class="disc">
+      <strong>⚠️ 說明：</strong>促銷價格來源為台灣授權經銷商 6/19–7/9 活動檔期報價，實際售價以各通路官網及現場為準。部分商品售完為止。
+    </div>
+  </div>
+</div>
+
+<footer>TK 蘋果商品資訊 · 到貨週期與促銷比較 · 僅供參考 · 以各通路官網及現場為準</footer>
+
+<script>
+/* ════════════════════════════════
+   PAGE SWITCHING
+════════════════════════════════ */
+function switchPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.page-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ════════════════════════════════
+   PAGE A — 到貨週期表
+════════════════════════════════ */
+const WEEKS = ['6/11–6/17', '7/2–7/8 (預計)', '7/9–7/15 (預計)'];
+
+const arrivalProducts = [
+  // ── Mac ─────────────────────────────────────────
+  { cat:'mac', name:'iMac 24吋 M4 / 16G / 藍',         model:'MWUF3TA/A · 253475', w:[1,3,0] },
+  { cat:'mac', name:'iMac 24吋 M4 / 16G / 銀',         model:'MWUU3TA/A · 253478', w:[0,1,0] },
+  { cat:'mac', name:'iMac 24吋 M4 / 24G / 藍',         model:'MWV13TA/A · 253479', w:[2,0,0] },
+  { cat:'mac', name:'MacBook Pro 14吋 M4 — 銀',         model:'MDE54TA/A · 263628', w:[11,10,0] },
+  { cat:'mac', name:'MacBook Pro 14吋 M4 — 太空黑',     model:'MDE34TA/A · 263629', w:[19,18,0] },
+  { cat:'mac', name:'MacBook Pro 14吋 M4 Pro — 銀',     model:'MDE64TA/A · 263630', w:[2,5,0] },
+  { cat:'mac', name:'MacBook Air 13吋 M4 16G — 午夜',   model:'MDHE4TA/A · 267369', w:[0,35,0] },
+  { cat:'mac', name:'MacBook Air 13吋 M4 16G — 銀',     model:'MDH74TA/A · 267370', w:[0,16,0] },
+  { cat:'mac', name:'MacBook Air 13吋 M4 16G — 天藍',   model:'MDHH4TA/A · 267371', w:[0,180,0] },
+  { cat:'mac', name:'MacBook Air 13吋 M4 16G — 星光',   model:'MDHA4TA/A · 267372', w:[0,45,0] },
+  { cat:'mac', name:'MacBook Air 13吋 M4 24G — 午夜',   model:'MDHF4TA/A · 267373', w:[0,4,0] },
+  { cat:'mac', name:'MacBook Air 13吋 M4 24G — 銀',     model:'MDH84TA/A · 267374', w:[0,18,0] },
+  { cat:'mac', name:'MacBook Air 13吋 M4 24G — 天藍',   model:'MDHJ4TA/A · 267375', w:[0,23,0] },
+  { cat:'mac', name:'MacBook Air 13吋 M4 24G — 星光',   model:'MDHC4TA/A · 267376', w:[0,1,0] },
+  { cat:'mac', name:'MacBook Air 13吋 M4 32G — 午夜',   model:'MDHG4TA/A · 267377', w:[0,1,0] },
+  { cat:'mac', name:'MacBook Air 15吋 M4 16G — 午夜',   model:'MDVH4TA/A · 267381', w:[10,10,0] },
+  { cat:'mac', name:'MacBook Air 15吋 M4 16G — 銀',     model:'MDV94TA/A · 267382', w:[1,11,0] },
+  { cat:'mac', name:'MacBook Air 15吋 M4 16G — 天藍',   model:'MDVQ4TA/A · 267383', w:[15,50,0] },
+  { cat:'mac', name:'MacBook Air 15吋 M4 16G — 星光',   model:'MDVD4TA/A · 267384', w:[5,20,0] },
+  { cat:'mac', name:'MacBook Air 15吋 M4 24G — 午夜',   model:'MDVK4TA/A · 267385', w:[12,7,0] },
+  { cat:'mac', name:'MacBook Air 15吋 M4 24G — 銀',     model:'MDVA4TA/A · 267386', w:[0,1,0] },
+  { cat:'mac', name:'MacBook Air 15吋 M4 24G — 天藍',   model:'MDVT4TA/A · 267387', w:[0,22,0] },
+  { cat:'mac', name:'MacBook Air 15吋 M4 24G — 星光',   model:'MDVE4TA/A · 267388', w:[16,0,0] },
+  { cat:'mac', name:'MacBook Pro 14吋 M4 — 銀',         model:'MJ3E4TA/A · 267393', w:[0,12,0] },
+  { cat:'mac', name:'MacBook Pro 14吋 M4 — 太空黑',     model:'MJ3D4TA/A · 267394', w:[0,27,0] },
+  { cat:'mac', name:'MacBook Pro 14吋 M4 Pro — 銀',     model:'MGDN4TA/A · 267395', w:[2,9,0] },
+  { cat:'mac', name:'MacBook Pro 14吋 M4 Pro — 黑',     model:'MGDR4TA/A · 267396', w:[2,8,0] },
+  { cat:'mac', name:'MacBook Pro 14吋 M4 Pro 24G — 銀', model:'MGDP4TA/A · 267399', w:[0,1,0] },
+  { cat:'mac', name:'MacBook Pro 14吋 M4 Max — 黑',     model:'MGDU4TA/A · 267402', w:[0,2,0] },
+  { cat:'mac', name:'MacBook Pro 16吋 M4 Pro — 銀',     model:'MGE44TA/A · 267403', w:[2,3,0] },
+  { cat:'mac', name:'MacBook Pro 16吋 M4 Pro — 黑',     model:'MGEA4TA/A · 267404', w:[2,2,0] },
+  { cat:'mac', name:'MacBook mini A Pro 13吋 — 胭粉 16G', model:'MHFH4TA/A · 267442', w:[50,60,0] },
+  { cat:'mac', name:'MacBook mini A Pro 13吋 — 青橘黃 16G',model:'MHFD4TA/A · 267443', w:[31,50,0] },
+  { cat:'mac', name:'MacBook mini A Pro 13吋 — 靛青 16G',  model:'MHFF4TA/A · 267444', w:[13,19,0] },
+  { cat:'mac', name:'MacBook mini A Pro 13吋 — 銀 16G',    model:'MHFA4TA/A · 267445', w:[18,35,0] },
+  { cat:'mac', name:'MacBook mini A Pro 13吋 — 胭粉 24G',  model:'MHFJ4TA/A · 267446', w:[210,0,0] },
+  { cat:'mac', name:'MacBook mini A Pro 13吋 — 青橘黃 24G',model:'MHFE4TA/A · 267447', w:[35,50,0] },
+  { cat:'mac', name:'MacBook mini A Pro 13吋 — 靛青 24G',  model:'MHFG4TA/A · 267448', w:[85,70,0] },
+  { cat:'mac', name:'MacBook mini A Pro 13吋 — 銀 24G',    model:'MHFC4TA/A · 267449', w:[70,0,0] },
+  { cat:'mac', name:'Studio Display 標準玻璃（可調斜度支架）',   model:'MFEX4TA/A · 267411', w:[3,0,0] },
+  { cat:'mac', name:'Studio Display 標準玻璃（可調高斜度支架）', model:'MFEW4TA/A · 267412', w:[1,1,0] },
+
+  // ── iPad ────────────────────────────────────────
+  { cat:'ipad', name:'iPad mini 7 Wi-Fi 128G — 太空灰',  model:'MXN63TA/A · 253162', w:[0,130,0] },
+  { cat:'ipad', name:'iPad mini 7 Wi-Fi 128G — 星光',    model:'MXN83TA/A · 253163', w:[5,0,0] },
+  { cat:'ipad', name:'iPad mini 7 Wi-Fi 128G — 紫',      model:'MXNE3TA/A · 253165', w:[0,5,0] },
+  { cat:'ipad', name:'iPad mini 7 Wi-Fi 256G — 星光',    model:'MXND3TA/A · 253167', w:[5,0,0] },
+  { cat:'ipad', name:'iPad 11吋 Wi-Fi 128G — 銀',        model:'MD3Y4TA/A · 256491', w:[85,5,0] },
+  { cat:'ipad', name:'iPad 11吋 Wi-Fi 128G — 藍',        model:'MD4A4TA/A · 256493', w:[0,185,0] },
+  { cat:'ipad', name:'iPad 11吋 Wi-Fi 128G — 黃',        model:'MD4D4TA/A · 256494', w:[0,10,0] },
+  { cat:'ipad', name:'iPad 11吋 Wi-Fi 128G — 粉紅',      model:'MD4E4TA/A · 256495', w:[0,100,0] },
+  { cat:'ipad', name:'iPad 11吋 Wi-Fi 256G — 銀',        model:'MD4G4TA/A · 256496', w:[0,200,0] },
+  { cat:'ipad', name:'iPad 11吋 Wi-Fi 256G — 藍',        model:'MD4H4TA/A · 256497', w:[0,170,0] },
+  { cat:'ipad', name:'iPad 11吋 Wi-Fi 512G — 粉紅',      model:'MD4P4TA/A · 256499', w:[0,5,0] },
+  { cat:'ipad', name:'iPad Pro 11吋 Wi-Fi 256GB — 太空黑',model:'MDWM4TA/A · 263633', w:[0,5,0] },
+  { cat:'ipad', name:'iPad Pro 13吋 Wi-Fi 256GB — 太空黑',model:'MDYJ4TA/A · 263655', w:[0,5,0] },
+  { cat:'ipad', name:'iPad Pro 13吋 Wi-Fi 256GB — 銀',   model:'MDYK4TA/A · 263656', w:[15,0,0] },
+  { cat:'ipad', name:'iPad Pro 13吋 Wi-Fi 512GB — 銀',   model:'MDYM4TA/A · 263658', w:[0,3,0] },
+  { cat:'ipad', name:'iPad Pro 13吋 Wi-Fi 1TB — 太空黑', model:'MDYN4TA/A · 263659', w:[0,1,0] },
+  { cat:'ipad', name:'iPad Air 11吋 M3 Wi-Fi 128G — 太空灰', model:'MH354TA/A · 267292', w:[0,10,0] },
+  { cat:'ipad', name:'iPad Air 11吋 M3 Wi-Fi 256G — 太空灰', model:'MH3A4TA/A · 267296', w:[0,5,0] },
+  { cat:'ipad', name:'iPad Air 11吋 M3 Wi-Fi 256G — 紫',     model:'MH3E4TA/A · 267299', w:[0,5,0] },
+  { cat:'ipad', name:'iPad Air 11吋 M3 Wi-Fi 512G — 太空灰', model:'MH3G4TA/A · 267300', w:[0,1,0] },
+  { cat:'ipad', name:'iPad Air 11吋 M3 Wi-Fi 512G — 藍',     model:'MH3H4TA/A · 267301', w:[0,1,0] },
+  { cat:'ipad', name:'iPad Air 13吋 M3 Wi-Fi 128G — 太空灰', model:'MH5N4TA/A · 267320', w:[0,35,0] },
+  { cat:'ipad', name:'iPad Air 13吋 M3 Wi-Fi 128G — 藍',     model:'MH5P4TA/A · 267321', w:[0,34,0] },
+  { cat:'ipad', name:'iPad Air 13吋 M3 Wi-Fi 128G — 紫',     model:'MH5T4TA/A · 267323', w:[0,40,0] },
+  { cat:'ipad', name:'iPad Air 13吋 M3 Wi-Fi 256G — 太空灰', model:'MH5U4TA/A · 267324', w:[0,20,0] },
+  { cat:'ipad', name:'iPad Air 13吋 M3 Wi-Fi 512G — 紫',     model:'MH5X4TA/A · 267327', w:[0,5,0] },
+  { cat:'ipad', name:'iPad Air 13吋 M3 Wi-Fi 512G — 太空灰', model:'MH5Y4TA/A · 267328', w:[0,3,0] },
+  { cat:'ipad', name:'iPad Air 13吋 M3 Wi-Fi 1TB — 星光',    model:'MH614TA/A · 267330', w:[0,2,0] },
+
+  // ── iPhone ──────────────────────────────────────
+  { cat:'iphone', name:'iPhone 16 128GB — 白色',       model:'MG6Q4ZP/A · 262255', w:[10,0,0] },
+  { cat:'iphone', name:'iPhone 16 Pro 128GB — 銀色',   model:'MG8G4ZP/A · 262271', w:[400,290,100] },
+  { cat:'iphone', name:'iPhone 16 Pro 128GB — 宇宙橙', model:'MG8H4ZP/A · 262272', w:[0,250,80] },
+  { cat:'iphone', name:'iPhone 16 Pro 128GB — 藏藍色', model:'MG8J4ZP/A · 262273', w:[90,210,90] },
+  { cat:'iphone', name:'iPhone 16 Pro 256GB — 銀色',   model:'MG8K4ZP/A · 262274', w:[20,20,0] },
+  { cat:'iphone', name:'iPhone 16 Pro 256GB — 宇宙橙', model:'MG8M4ZP/A · 262275', w:[0,60,10] },
+  { cat:'iphone', name:'iPhone 16 Pro 256GB — 藏藍色', model:'MG8N4ZP/A · 262276', w:[10,90,0] },
+  { cat:'iphone', name:'iPhone 16 Pro 1TB — 銀色',     model:'MG8P4ZP/A · 262277', w:[10,0,0] },
+  { cat:'iphone', name:'iPhone 16 Pro Max 256GB — 銀色',   model:'MFYM4ZP/A · 262280', w:[280,190,0] },
+  { cat:'iphone', name:'iPhone 16 Pro Max 256GB — 宇宙橙', model:'MFYN4ZP/A · 262281', w:[90,60,0] },
+  { cat:'iphone', name:'iPhone 16 Pro Max 256GB — 藏藍色', model:'MFYP4ZP/A · 262282', w:[40,100,150] },
+  { cat:'iphone', name:'iPhone 16 Pro Max 512GB — 銀色',   model:'MFYQ4ZP/A · 262283', w:[60,50,50] },
+  { cat:'iphone', name:'iPhone 16 Pro Max 512GB — 宇宙橙', model:'MFYT4ZP/A · 262284', w:[40,60,10] },
+  { cat:'iphone', name:'iPhone 16 Pro Max 512GB — 藏藍色', model:'MFYU4ZP/A · 262285', w:[10,10,0] },
+  { cat:'iphone', name:'iPhone 16 Pro Max 1TB — 宇宙橙',   model:'MFYW4ZP/A · 262287', w:[10,0,0] },
+  { cat:'iphone', name:'iPhone 16 Pro Max 1TB — 藏藍色',   model:'MFYX4ZP/A · 262288', w:[10,0,0] },
+  { cat:'iphone', name:'iPhone 16e 128GB — 白色',      model:'MHRW4ZP/A · 267283', w:[20,0,0] },
+  { cat:'iphone', name:'iPhone 16e 128GB — 嫩粉色',    model:'MHRX4ZP/A · 267284', w:[40,0,0] },
+
+  // ── Apple Watch ─────────────────────────────────
+  { cat:'watch', name:'AW SE GPS 40mm 星光鋁 / 星光運動錶帶 S/M', model:'MEH34TA/A · 262292', w:[12,48,0] },
+  { cat:'watch', name:'AW SE GPS 40mm 星光鋁 / 星光運動錶帶 M/L', model:'MEH54TA/A · 262293', w:[0,6,0] },
+  { cat:'watch', name:'AW SE GPS 44mm 星光鋁 / 星光運動錶帶 S/M', model:'MEHG4TA/A · 262296', w:[0,24,0] },
+  { cat:'watch', name:'AW SE GPS 44mm 星光鋁 / 星光運動錶帶 M/L', model:'MEHJ4TA/A · 262297', w:[0,18,12] },
+  { cat:'watch', name:'AW SE GPS 44mm 午夜鋁 / 午夜運動錶帶 S/M', model:'MEHN4TA/A · 262298', w:[0,30,0] },
+  { cat:'watch', name:'AW SE GPS 44mm 午夜鋁 / 午夜運動錶帶 M/L', model:'MEHQ4TA/A · 262299', w:[0,36,0] },
+  { cat:'watch', name:'AW SE LTE 40mm 星光鋁 / 星光運動錶帶 S/M', model:'MEP64TA/A · 262300', w:[0,6,0] },
+  { cat:'watch', name:'AW S10 GPS 42mm 曜石黑鋁 / 黑運動錶帶 S/M',   model:'MEQT4TA/A · 262308', w:[0,6,6] },
+  { cat:'watch', name:'AW S10 GPS 42mm 太空灰鋁 / 黑運動錶帶 S/M',   model:'MEQW4TA/A · 262310', w:[12,6,0] },
+  { cat:'watch', name:'AW S10 GPS 42mm 太空灰鋁 / 黑運動錶帶 M/L',   model:'MEQX4TA/A · 262311', w:[6,0,0] },
+  { cat:'watch', name:'AW S10 GPS 42mm 玫瑰金鋁 / 淡胭粉運動錶帶 S/M',model:'MEU04TA/A · 262312', w:[12,30,30] },
+  { cat:'watch', name:'AW S10 GPS 46mm 曜石黑鋁 / 黑運動錶帶 M/L',   model:'MEUX4TA/A · 262317', w:[0,72,12] },
+  { cat:'watch', name:'AW S10 GPS 46mm 太空灰鋁 / 黑運動錶帶 M/L',   model:'MEV44TA/A · 262319', w:[0,42,24] },
+  { cat:'watch', name:'AW S10 GPS 46mm 玫瑰金鋁 / 淡胭粉運動錶帶 S/M',model:'MEV64TA/A · 262320', w:[0,30,0] },
+  { cat:'watch', name:'AW S10 GPS 46mm 玫瑰金鋁 / 淡胭粉運動錶帶 M/L',model:'MEV74TA/A · 262321', w:[0,12,6] },
+  { cat:'watch', name:'AW S10 GPS 46mm 銀鋁 / 霧紫運動錶帶 S/M',      model:'MEV94TA/A · 262322', w:[0,6,6] },
+  { cat:'watch', name:'AW S10 GPS 46mm 銀鋁 / 霧紫運動錶帶 M/L',      model:'MEVA4TA/A · 262323', w:[6,0,0] },
+  { cat:'watch', name:'AW Ultra 2 49mm 原色鈦 / 錨藍海洋錶帶', model:'MEWH4TA/A · 262361', w:[12,12,0] },
+  { cat:'watch', name:'AW Ultra 2 49mm 黑色鈦 / 黑色海洋錶帶', model:'MF0J4TA/A · 262362', w:[6,30,0] },
+  { cat:'watch', name:'AW Ultra 2 49mm 黑色鈦 / 黑色高山錶環 L',model:'MF0X4TA/A · 262365', w:[0,6,0] },
+
+  // ── AirPods ─────────────────────────────────────
+  { cat:'airpods', name:'AirPods 4',          model:'MXP63TA/A · 252141', w:[30,350,0] },
+  { cat:'airpods', name:'AirPods 4 主動降噪', model:'MXP93TA/A · 252142', w:[150,100,0] },
+  { cat:'airpods', name:'AirPods Pro 3',      model:'MFHP4TA/A · 262379', w:[170,460,0] },
+];
+
+const ARRIVAL_SECTIONS = [
+  { id:'mac',     label:'Mac',         icon:'💻' },
+  { id:'ipad',    label:'iPad',        icon:'⬛' },
+  { id:'iphone',  label:'iPhone',      icon:'📱' },
+  { id:'watch',   label:'Apple Watch', icon:'⌚' },
+  { id:'airpods', label:'AirPods',     icon:'🎧' },
+];
+
+function badgeClass(n) { return n === 0 ? 'out-stock' : n <= 10 ? 'low-stock' : 'in-stock'; }
+function badgeUnit(cat) {
+  if (cat === 'mac' || cat === 'ipad') return '台';
+  if (cat === 'iphone' || cat === 'watch') return '隻';
+  return '件';
+}
+function badgeText(n, cat) { return n === 0 ? '–' : n + ' ' + badgeUnit(cat); }
+function makeBadge(n, estimated, cat) {
+  return `<div class="badge-cell"><span class="badge ${badgeClass(n)}${estimated?' estimated':''}"><span class="badge-dot"></span>${badgeText(n, cat)}</span></div>`;
+}
+
+function renderArrival(cat) {
+  const container = document.getElementById('arrival-content');
+  let html = '';
+  const sections = cat === 'all' ? ARRIVAL_SECTIONS : ARRIVAL_SECTIONS.filter(s => s.id === cat);
+
+  sections.forEach(sec => {
+    const items = arrivalProducts.filter(p => p.cat === sec.id);
+    if (!items.length) return;
+
+    html += `<div class="section">
+      <div class="section-header">
+        <span class="section-icon">${sec.icon}</span>
+        <span class="section-title">${sec.label}</span>
+        <span class="section-count">${items.length} 個品項</span>
+      </div>
+      <div class="week-cols">
+        <div class="week-label">品名 / 型號</div>
+        ${WEEKS.map(w => `<div class="week-label">${w}</div>`).join('')}
+      </div>
+      <div class="products">`;
+
+    items.forEach((p, i) => {
+      if (i > 0) html += `<div class="group-divider"></div>`;
+      html += `<div class="product-card">
+        <div class="product-info">
+          <div class="product-name">${p.name}</div>
+          <div class="product-model">${p.model}</div>
+        </div>
+        ${makeBadge(p.w[0], false, p.cat)}
+        ${makeBadge(p.w[1], true, p.cat)}
+        ${makeBadge(p.w[2], true, p.cat)}
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  container.innerHTML = html || `<div style="text-align:center;padding:60px;color:var(--subtext)">此分類暫無資料。</div>`;
+}
+
+function filterCat(cat) {
+  document.querySelectorAll('.cat-pill').forEach(btn =>
+    btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${cat}'`)));
+  renderArrival(cat);
+}
+
+renderArrival('all');
+
+/* ════════════════════════════════
+   PAGE B — 促銷比較
+════════════════════════════════ */
+const DATA = {
+  mac: {
+    label: 'Mac',
+    products: {
+      'MacBook Neo': {
+        desc: '13吋 · A18 Pro',
+        specs: [
+          { mem:'8GB', ssd:'256GB', price:19900, sale:null, bonus:'滿萬送 200 配件金', kw:'MacBook Neo 13 256GB' },
+          { mem:'8GB', ssd:'512GB', price:22900, sale:null, bonus:'滿萬送 200 配件金', kw:'MacBook Neo 13 512GB' },
+        ],
+        selectors: ['mem','ssd']
+      },
+      'MacBook Air 13吋': {
+        desc: '13.6吋 · M5',
+        specs: [
+          { mem:'16GB', ssd:'512GB', price:35900, sale:null, edu:32590, bonus:'滿萬送 300 配件金', kw:'MacBook Air 13 M5 16GB 512GB' },
+          { mem:'16GB', ssd:'1TB',   price:42900, sale:null, edu:39590, bonus:'滿萬送 300 配件金', kw:'MacBook Air 13 M5 16GB 1TB' },
+          { mem:'24GB', ssd:'1TB',   price:49900, sale:null, edu:46590, bonus:'滿萬送 300 配件金', kw:'MacBook Air 13 M5 24GB 1TB' },
+        ],
+        selectors: ['mem','ssd']
+      },
+      'MacBook Air 15吋': {
+        desc: '15.3吋 · M5',
+        specs: [
+          { mem:'16GB', ssd:'512GB', price:42900, sale:null, edu:39590, bonus:'滿萬送 300 配件金', kw:'MacBook Air 15 M5 16GB 512GB' },
+          { mem:'16GB', ssd:'1TB',   price:49900, sale:null, edu:46590, bonus:'滿萬送 300 配件金', kw:'MacBook Air 15 M5 16GB 1TB' },
+          { mem:'24GB', ssd:'1TB',   price:56900, sale:null, edu:null,  bonus:'滿萬送 300 配件金', kw:'MacBook Air 15 M5 24GB 1TB' },
+        ],
+        selectors: ['mem','ssd']
+      },
+      'MacBook Pro 14吋': {
+        desc: '14.2吋 · M5 / M5 Pro / M5 Max',
+        specs: [
+          { chip:'M5 16GB',          ssd:'1TB',  price:54900,  sale:53253, bonus:null,           kw:'MacBook Pro 14 M5 16GB 1TB' },
+          { chip:'M5 24GB',          ssd:'1TB',  price:61900,  sale:60043, bonus:null,           kw:'MacBook Pro 14 M5 24GB 1TB' },
+          { chip:'M5 32GB',          ssd:'1TB',  price:68900,  sale:66833, bonus:null,           kw:'MacBook Pro 14 M5 32GB 1TB' },
+          { chip:'M5 Pro 15CPU 24GB',ssd:'1TB',  price:74900,  sale:null,  bonus:'滿萬送 500 配件金', kw:'MacBook Pro 14 M5 Pro 24GB 1TB' },
+          { chip:'M5 Pro 15CPU 24GB',ssd:'2TB',  price:88900,  sale:null,  bonus:'滿萬送 500 配件金', kw:'MacBook Pro 14 M5 Pro 24GB 2TB' },
+          { chip:'M5 Pro 18CPU 24GB',ssd:'2TB',  price:95900,  sale:null,  bonus:'滿萬送 500 配件金', kw:'MacBook Pro 14 M5 Pro 18CPU 24GB 2TB' },
+          { chip:'M5 Max 36GB',      ssd:'2TB',  price:119900, sale:null,  bonus:'滿萬送 500 配件金', kw:'MacBook Pro 14 M5 Max 36GB 2TB' },
+        ],
+        selectors: ['chip','ssd']
+      },
+      'MacBook Pro 16吋': {
+        desc: '16.2吋 · M5 Pro / M5 Max',
+        specs: [
+          { chip:'M5 Pro 24GB', ssd:'1TB',  price:89900,  sale:null, bonus:'滿萬送 500 配件金', kw:'MacBook Pro 16 M5 Pro 24GB 1TB' },
+          { chip:'M5 Pro 48GB', ssd:'1TB',  price:103900, sale:null, bonus:'滿萬送 500 配件金', kw:'MacBook Pro 16 M5 Pro 48GB 1TB' },
+          { chip:'M5 Max 36GB', ssd:'2TB',  price:129900, sale:null, bonus:'滿萬送 500 配件金', kw:'MacBook Pro 16 M5 Max 36GB 2TB' },
+          { chip:'M5 Max 48GB', ssd:'2TB',  price:147900, sale:null, bonus:'滿萬送 500 配件金', kw:'MacBook Pro 16 M5 Max 48GB 2TB' },
+        ],
+        selectors: ['chip','ssd']
+      },
+      'iMac': {
+        desc: '24吋 · M4 · 現折 4%',
+        specs: [
+          { chip:'M4 8CPU/8GPU',   mem:'16GB', ssd:'256GB', price:42900, sale:41184, bonus:null, kw:'iMac M4 16GB 256GB' },
+          { chip:'M4 10CPU/10GPU', mem:'16GB', ssd:'256GB', price:49900, sale:47904, bonus:null, kw:'iMac M4 10CPU 16GB 256GB' },
+          { chip:'M4 10CPU/10GPU', mem:'16GB', ssd:'512GB', price:56900, sale:54624, bonus:null, kw:'iMac M4 10CPU 16GB 512GB' },
+          { chip:'M4 10CPU/10GPU', mem:'24GB', ssd:'512GB', price:63900, sale:61344, bonus:null, kw:'iMac M4 10CPU 24GB 512GB' },
+        ],
+        selectors: ['chip','mem','ssd']
+      },
+      'Mac mini': {
+        desc: 'M4 / M4 Pro · 暫無交期',
+        specs: [
+          { chip:'M4',     mem:'16GB', ssd:'512GB', price:26900, sale:null, bonus:null, kw:'Mac mini M4 16GB 512GB' },
+          { chip:'M4',     mem:'24GB', ssd:'512GB', price:33900, sale:null, bonus:null, kw:'Mac mini M4 24GB 512GB' },
+          { chip:'M4 Pro', mem:'24GB', ssd:'512GB', price:46900, sale:null, bonus:null, kw:'Mac mini M4 Pro 24GB 512GB' },
+        ],
+        selectors: ['chip','mem','ssd']
+      },
+      'Mac Studio': {
+        desc: 'M4 Max / M3 Ultra · 暫無交期',
+        specs: [
+          { chip:'M4 Max',   mem:'36GB', ssd:'512GB', price:67900,  sale:null, bonus:null, kw:'Mac Studio M4 Max' },
+          { chip:'M3 Ultra', mem:'96GB', ssd:'1TB',   price:137900, sale:null, bonus:null, kw:'Mac Studio M3 Ultra' },
+        ],
+        selectors: ['chip','mem','ssd']
+      },
+      'Studio Display': {
+        desc: '標準玻璃 · 現折 2116 起',
+        specs: [
+          { ver:'可調整斜度支架',   price:52900, sale:50784, bonus:null, kw:'Studio Display 標準玻璃 斜度支架' },
+          { ver:'可調整高斜度支架', price:64900, sale:62304, bonus:null, kw:'Studio Display 標準玻璃 高斜度支架' },
+        ],
+        selectors: ['ver']
+      },
+    }
+  },
+
+  ipad: {
+    label: 'iPad',
+    products: {
+      'iPad mini (第7代)': {
+        desc: 'iPad mini 7th · 現折 5%',
+        specs: [
+          { conn:'Wi-Fi',     ssd:'128GB', price:15900, sale:15105, kw:'iPad mini 7 128GB' },
+          { conn:'Wi-Fi',     ssd:'256GB', price:19400, sale:18430, kw:'iPad mini 7 256GB' },
+          { conn:'Wi-Fi',     ssd:'512GB', price:26400, sale:25080, kw:'iPad mini 7 512GB' },
+          { conn:'Wi-Fi+LTE', ssd:'128GB', price:20900, sale:19855, kw:'iPad mini 7 LTE 128GB' },
+          { conn:'Wi-Fi+LTE', ssd:'256GB', price:24400, sale:23180, kw:'iPad mini 7 LTE 256GB' },
+          { conn:'Wi-Fi+LTE', ssd:'512GB', price:31400, sale:29830, kw:'iPad mini 7 LTE 512GB' },
+        ],
+        selectors: ['conn','ssd']
+      },
+      'iPad 11吋 (A16)': {
+        desc: 'iPad 11吋 A16 · 現折 901 起',
+        specs: [
+          { conn:'Wi-Fi',     ssd:'128GB', price:10900, sale:9999,  kw:'iPad A16 11 128GB' },
+          { conn:'Wi-Fi',     ssd:'256GB', price:14400, sale:13248, kw:'iPad A16 11 256GB' },
+          { conn:'Wi-Fi',     ssd:'512GB', price:21400, sale:19688, kw:'iPad A16 11 512GB' },
+          { conn:'Wi-Fi+LTE', ssd:'128GB', price:15900, sale:14628, kw:'iPad A16 11 LTE 128GB' },
+          { conn:'Wi-Fi+LTE', ssd:'256GB', price:19400, sale:17848, kw:'iPad A16 11 LTE 256GB' },
+          { conn:'Wi-Fi+LTE', ssd:'512GB', price:26400, sale:24288, kw:'iPad A16 11 LTE 512GB' },
+        ],
+        selectors: ['conn','ssd']
+      },
+      'iPad Air 11吋 (M4)': {
+        desc: 'iPad Air 11吋 M4 · 現折 1194 起',
+        specs: [
+          { conn:'Wi-Fi',     ssd:'128GB', price:19900, sale:18706, kw:'iPad Air 11 M4 128GB' },
+          { conn:'Wi-Fi',     ssd:'256GB', price:23400, sale:21996, kw:'iPad Air 11 M4 256GB' },
+          { conn:'Wi-Fi',     ssd:'512GB', price:30400, sale:28576, kw:'iPad Air 11 M4 512GB' },
+          { conn:'Wi-Fi',     ssd:'1TB',   price:37400, sale:35156, kw:'iPad Air 11 M4 1TB' },
+          { conn:'Wi-Fi+LTE', ssd:'128GB', price:24900, sale:23406, kw:'iPad Air 11 M4 LTE 128GB' },
+          { conn:'Wi-Fi+LTE', ssd:'256GB', price:28400, sale:26696, kw:'iPad Air 11 M4 LTE 256GB' },
+          { conn:'Wi-Fi+LTE', ssd:'512GB', price:35400, sale:33276, kw:'iPad Air 11 M4 LTE 512GB' },
+          { conn:'Wi-Fi+LTE', ssd:'1TB',   price:42400, sale:39856, kw:'iPad Air 11 M4 LTE 1TB' },
+        ],
+        selectors: ['conn','ssd']
+      },
+      'iPad Air 13吋 (M4)': {
+        desc: 'iPad Air 13吋 M4 · 現折 1614 起',
+        specs: [
+          { conn:'Wi-Fi',     ssd:'128GB', price:26900, sale:25286, kw:'iPad Air 13 M4 128GB' },
+          { conn:'Wi-Fi',     ssd:'256GB', price:30400, sale:28576, kw:'iPad Air 13 M4 256GB' },
+          { conn:'Wi-Fi',     ssd:'512GB', price:37400, sale:35156, kw:'iPad Air 13 M4 512GB' },
+          { conn:'Wi-Fi',     ssd:'1TB',   price:44400, sale:41736, kw:'iPad Air 13 M4 1TB' },
+          { conn:'Wi-Fi+LTE', ssd:'128GB', price:31900, sale:29986, kw:'iPad Air 13 M4 LTE 128GB' },
+          { conn:'Wi-Fi+LTE', ssd:'256GB', price:35400, sale:33276, kw:'iPad Air 13 M4 LTE 256GB' },
+          { conn:'Wi-Fi+LTE', ssd:'512GB', price:42400, sale:39856, kw:'iPad Air 13 M4 LTE 512GB' },
+          { conn:'Wi-Fi+LTE', ssd:'1TB',   price:49400, sale:46436, kw:'iPad Air 13 M4 LTE 1TB' },
+        ],
+        selectors: ['conn','ssd']
+      },
+      'iPad Pro 11吋 (M5)': {
+        desc: 'iPad Pro 11吋 M5 · 現折 2632 起',
+        specs: [
+          { conn:'Wi-Fi',     ssd:'256GB', price:32900, sale:30268, kw:'iPad Pro 11 M5 256GB' },
+          { conn:'Wi-Fi',     ssd:'512GB', price:39900, sale:36708, kw:'iPad Pro 11 M5 512GB' },
+          { conn:'Wi-Fi',     ssd:'1TB',   price:53900, sale:49588, kw:'iPad Pro 11 M5 1TB' },
+          { conn:'Wi-Fi',     ssd:'2TB',   price:67900, sale:62468, kw:'iPad Pro 11 M5 2TB' },
+          { conn:'Wi-Fi+LTE', ssd:'256GB', price:39900, sale:36708, kw:'iPad Pro 11 M5 LTE 256GB' },
+          { conn:'Wi-Fi+LTE', ssd:'512GB', price:46900, sale:43148, kw:'iPad Pro 11 M5 LTE 512GB' },
+          { conn:'Wi-Fi+LTE', ssd:'1TB',   price:60900, sale:56028, kw:'iPad Pro 11 M5 LTE 1TB' },
+          { conn:'Wi-Fi+LTE', ssd:'2TB',   price:74900, sale:68908, kw:'iPad Pro 11 M5 LTE 2TB' },
+        ],
+        selectors: ['conn','ssd']
+      },
+      'iPad Pro 13吋 (M5)': {
+        desc: 'iPad Pro 13吋 M5 · 現折 3512 起',
+        specs: [
+          { conn:'Wi-Fi',     ssd:'256GB', price:43900, sale:40388, kw:'iPad Pro 13 M5 256GB' },
+          { conn:'Wi-Fi',     ssd:'512GB', price:50900, sale:46828, kw:'iPad Pro 13 M5 512GB' },
+          { conn:'Wi-Fi',     ssd:'1TB',   price:64900, sale:59708, kw:'iPad Pro 13 M5 1TB' },
+          { conn:'Wi-Fi',     ssd:'2TB',   price:78900, sale:72588, kw:'iPad Pro 13 M5 2TB' },
+          { conn:'Wi-Fi+LTE', ssd:'256GB', price:50900, sale:46828, kw:'iPad Pro 13 M5 LTE 256GB' },
+          { conn:'Wi-Fi+LTE', ssd:'512GB', price:57900, sale:53268, kw:'iPad Pro 13 M5 LTE 512GB' },
+          { conn:'Wi-Fi+LTE', ssd:'1TB',   price:71900, sale:66148, kw:'iPad Pro 13 M5 LTE 1TB' },
+          { conn:'Wi-Fi+LTE', ssd:'2TB',   price:85900, sale:79028, kw:'iPad Pro 13 M5 LTE 2TB' },
+        ],
+        selectors: ['conn','ssd']
+      },
+    }
+  },
+
+  iphone: {
+    label: 'iPhone',
+    products: {
+      'iPhone 16e': {
+        desc: 'iPhone 16e · 現折 736',
+        specs: [
+          { ssd:'128GB', price:18400, sale:17664, kw:'iPhone 16e 128GB' },
+        ],
+        selectors: ['ssd']
+      },
+      'iPhone 17e': {
+        desc: 'iPhone 17e · 現折 834 起，再送市價 1280 保護貼',
+        specs: [
+          { ssd:'256GB', price:21900, sale:21066, gift:'送市價 1280 保護貼', kw:'iPhone 17e 256GB' },
+          { ssd:'512GB', price:28900, sale:27646, gift:'送市價 1280 保護貼', kw:'iPhone 17e 512GB' },
+        ],
+        selectors: ['ssd']
+      },
+      'iPhone 16': {
+        desc: 'iPhone 16 · 現折 1295 起',
+        specs: [
+          { ssd:'128GB', price:25900, sale:24605, kw:'iPhone 16 128GB' },
+          { ssd:'256GB', price:29400, sale:25999, kw:'iPhone 16 256GB（售完為止）' },
+        ],
+        selectors: ['ssd']
+      },
+      'iPhone 16 Plus': {
+        desc: 'iPhone 16 Plus · 現折 5%',
+        specs: [
+          { ssd:'128GB', price:29900, sale:28405, kw:'iPhone 16 Plus 128GB' },
+          { ssd:'256GB', price:33400, sale:31730, kw:'iPhone 16 Plus 256GB' },
+        ],
+        selectors: ['ssd']
+      },
+      'iPhone 17': {
+        desc: 'iPhone 17 · 現折 1464 起，再送市價 1290 保護貼',
+        specs: [
+          { ssd:'256GB', price:29900, sale:28437, gift:'送市價 1290 保護貼', kw:'iPhone 17 256GB' },
+          { ssd:'512GB', price:36900, sale:34982, gift:'送市價 1290 保護貼', kw:'iPhone 17 512GB' },
+        ],
+        selectors: ['ssd']
+      },
+      'iPhone Air': {
+        desc: 'iPhone Air · 現折 2583 起（售完為止）',
+        specs: [
+          { ssd:'256GB', price:36900, sale:34317, kw:'iPhone Air 256GB' },
+          { ssd:'512GB', price:43900, sale:40827, kw:'iPhone Air 512GB' },
+        ],
+        selectors: ['ssd']
+      },
+      'iPhone 17 Pro': {
+        desc: 'iPhone 17 Pro · 現折 946 起，再送市價 790 保護貼',
+        specs: [
+          { ssd:'256GB', price:39900, sale:38954, gift:'送市價 790 保護貼', kw:'iPhone 17 Pro 256GB' },
+          { ssd:'512GB', price:46900, sale:45709, gift:'送市價 790 保護貼', kw:'iPhone 17 Pro 512GB' },
+          { ssd:'1TB',   price:53900, sale:52464, gift:'送市價 790 保護貼', kw:'iPhone 17 Pro 1TB' },
+        ],
+        selectors: ['ssd']
+      },
+      'iPhone 17 Pro Max': {
+        desc: 'iPhone 17 Pro Max · 現折 1046 起，再送市價 1499 保護殼貼組',
+        specs: [
+          { ssd:'256GB', price:44900, sale:43854, gift:'送市價 1499 UAG 保護殼貼組', kw:'iPhone 17 Pro Max 256GB' },
+          { ssd:'512GB', price:51900, sale:50574, gift:'送市價 1499 UAG 保護殼貼組', kw:'iPhone 17 Pro Max 512GB' },
+          { ssd:'1TB',   price:58900, sale:57294, gift:'送市價 1499 UAG 保護殼貼組', kw:'iPhone 17 Pro Max 1TB' },
+          { ssd:'2TB',   price:72900, sale:70734, gift:'送市價 1499 UAG 保護殼貼組', kw:'iPhone 17 Pro Max 2TB' },
+        ],
+        selectors: ['ssd']
+      },
+    }
+  },
+
+  watch: {
+    label: 'Apple Watch',
+    products: {
+      'Apple Watch SE (第3代)': {
+        desc: 'Apple Watch SE 3 · 現折 553 起',
+        specs: [
+          { conn:'GPS',     size:'40mm', price:7900,  sale:7347, kw:'Apple Watch SE 3 40mm GPS' },
+          { conn:'GPS',     size:'44mm', price:8900,  sale:8277, kw:'Apple Watch SE 3 44mm GPS' },
+          { conn:'GPS+LTE', size:'40mm', price:9400,  sale:8742, kw:'Apple Watch SE 3 40mm LTE' },
+        ],
+        selectors: ['conn','size']
+      },
+      'Apple Watch Series 11': {
+        desc: 'Apple Watch S11 · 現折 903 起',
+        specs: [
+          { conn:'GPS',     size:'42mm', price:12900, sale:11997, kw:'Apple Watch Series 11 42mm GPS' },
+          { conn:'GPS',     size:'46mm', price:13900, sale:12927, kw:'Apple Watch Series 11 46mm GPS' },
+        ],
+        selectors: ['conn','size']
+      },
+      'Apple Watch Ultra 3': {
+        desc: 'Apple Watch Ultra 3 · 49mm 鈦金屬 · 現折 2152 起',
+        specs: [
+          { band:'海洋/高山/越野錶帶', price:26900, sale:24748, kw:'Apple Watch Ultra 3' },
+          { band:'鈦金屬米蘭錶環',     price:29900, sale:27508, kw:'Apple Watch Ultra 3 米蘭錶環' },
+        ],
+        selectors: ['band']
+      },
+    }
+  },
+
+  airpods: {
+    label: 'AirPods',
+    products: {
+      'AirPods Pro (第3代)': {
+        desc: 'AirPods Pro 3 · 主動降噪',
+        specs: [
+          { ver:'標準版', price:7490, sale:6690, kw:'AirPods Pro 3' },
+        ],
+        selectors: ['ver']
+      },
+      'AirPods 4': {
+        desc: 'AirPods 4',
+        specs: [
+          { ver:'標準版',       price:4490, sale:3990, kw:'AirPods 4' },
+          { ver:'主動式降噪版', price:5990, sale:5390, kw:'AirPods 4 ANC' },
+        ],
+        selectors: ['ver']
+      },
+      'AirPods Max (第2代)': {
+        desc: 'AirPods Max 2 · 頭戴式耳機',
+        specs: [
+          { ver:'標準版', price:17990, sale:null, kw:'AirPods Max 2' },
+        ],
+        selectors: ['ver']
+      },
+      'AirPods Max (第1代)': {
+        desc: 'AirPods Max · 頭戴式耳機',
+        specs: [
+          { ver:'午夜色 / 紫色', price:17990, sale:16191, kw:'AirPods Max' },
+        ],
+        selectors: ['ver']
+      },
+    }
+  }
+};
+
+const SEL_LABELS = {
+  product:'產品型號', chip:'晶片', mem:'記憶體',
+  ssd:'儲存空間', conn:'連線方式', size:'錶殼尺寸',
+  band:'錶帶類型', ver:'版本'
+};
+const enc = s => encodeURIComponent(s);
+const fmt = n => 'NT$ ' + n.toLocaleString('zh-TW');
+
+let activeCat = 'mac';
+let selState  = {};
+
+function getOptions(key) {
+  const cat  = DATA[activeCat];
+  const prod = selState.product ? cat.products[selState.product] : null;
+  if (key === 'product') return Object.keys(cat.products);
+  if (!prod) return [];
+  const dims = prod.selectors;
+  const idx  = dims.indexOf(key);
+  const prevDims = dims.slice(0, idx);
+  const matching = prod.specs.filter(s => prevDims.every(d => !selState[d] || s[d] === selState[d]));
+  return [...new Set(matching.map(s => s[key]))];
+}
+
+function buildSelectors() {
+  const row = document.getElementById('sel-row');
+  const cat = DATA[activeCat];
+  const prod = selState.product ? cat.products[selState.product] : null;
+  const extraKeys = prod ? prod.selectors : [];
+  const allKeys = ['product', ...extraKeys];
+  row.innerHTML = allKeys.map(key => {
+    const opts = getOptions(key);
+    const val  = selState[key] || '';
+    const disabled = key !== 'product' && !selState.product ? 'disabled' : '';
+    return `<div class="sel-group">
+      <label>${SEL_LABELS[key] || key}</label>
+      <select data-key="${key}" ${disabled} onchange="onSelect(this)">
+        <option value="">── 請選擇 ──</option>
+        ${opts.map(o => `<option value="${o}" ${o===val?'selected':''}>${o}</option>`).join('')}
+      </select>
+    </div>`;
+  }).join('');
+}
+
+function onSelect(el) {
+  const key = el.dataset.key;
+  const val = el.value;
+  const cat  = DATA[activeCat];
+  const prod = selState.product ? cat.products[selState.product] : null;
+  if (key === 'product') {
+    selState = { product: val };
+  } else if (prod) {
+    const dims = prod.selectors;
+    const idx  = dims.indexOf(key);
+    dims.slice(idx + 1).forEach(d => { delete selState[d]; });
+    selState[key] = val;
+  }
+  buildSelectors();
+  updateResult();
+}
+
+function updateResult() {
+  const cat  = DATA[activeCat];
+  const prod = selState.product ? cat.products[selState.product] : null;
+  if (!prod) { showPlaceholder(); return; }
+  const dims = prod.selectors;
+  if (!dims.every(d => selState[d])) { showPlaceholder(); return; }
+  const spec = prod.specs.find(s => dims.every(d => s[d] === selState[d]));
+  if (!spec) { showPlaceholder(); return; }
+
+  document.getElementById('pb-model').textContent  = cat.label + ' · ' + selState.product;
+  document.getElementById('pb-name').textContent   = selState.product;
+  document.getElementById('pb-spec').textContent   = dims.map(d => selState[d]).join('  ·  ');
+  document.getElementById('pb-member').textContent = fmt(spec.price);
+
+  const hasSale = spec.sale && spec.sale < spec.price;
+  document.getElementById('pb-divider').style.display    = hasSale ? '' : 'none';
+  document.getElementById('pb-sale-wrap').style.display  = hasSale ? '' : 'none';
+  document.getElementById('pb-badge-wrap').style.display = hasSale ? '' : 'none';
+  if (hasSale) {
+    document.getElementById('pb-sale').textContent = fmt(spec.sale);
+    const pct = Math.round((spec.price - spec.sale) / spec.price * 100);
+    document.getElementById('pb-discount').textContent = `省 ${pct}%`;
+  }
+
+  const hasEdu = spec.edu;
+  document.getElementById('pb-edu-divider').style.display = hasEdu ? '' : 'none';
+  document.getElementById('pb-edu-wrap').style.display    = hasEdu ? '' : 'none';
+  if (hasEdu) document.getElementById('pb-edu').textContent = fmt(spec.edu);
+
+  const hasBonus = spec.bonus;
+  document.getElementById('pb-bonus-wrap').style.display = hasBonus ? '' : 'none';
+  if (hasBonus) document.getElementById('pb-bonus').textContent = '🎁 ' + spec.bonus;
+
+  const hasGift = spec.gift;
+  document.getElementById('pb-gift-wrap').style.display = hasGift ? '' : 'none';
+  if (hasGift) document.getElementById('pb-gift').textContent = '🎀 ' + spec.gift;
+
+  document.getElementById('price-box').className = 'show';
+  document.getElementById('placeholder').style.display = 'none';
+}
+
+function showPlaceholder() {
+  document.getElementById('price-box').className = '';
+  document.getElementById('placeholder').style.display = '';
+}
+
+function setCat(cat) {
+  activeCat = cat;
+  selState  = {};
+  document.querySelectorAll('.cat-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.cat === cat));
+  buildSelectors();
+  showPlaceholder();
+}
+
+document.getElementById('cat-tabs').addEventListener('click', e => {
+  const tab = e.target.closest('.cat-tab');
+  if (tab) setCat(tab.dataset.cat);
+});
+
+buildSelectors();
+</script>
+</body>
+</html>
